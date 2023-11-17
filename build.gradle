@@ -1,0 +1,61 @@
+// allows to declare different plugins. Depends on the type of initialized application
+plugins {
+    id 'java'
+}
+
+// mandatory attributes for each gradle project
+group = 'org.example'
+version = '1.0.0-SNAPSHOT'
+
+sourceCompatibility = 11
+targetCompatibility = 11
+
+// repositories declaration
+// Besides the most used maven central, another public/private could be declared as well as the local one
+repositories {
+    mavenCentral()
+    // define local repository
+    flatDir {
+        dirs 'lib'
+    }
+}
+
+// dependencies. Be aware of the different types/scopes of dependencies
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.9.1')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+// modifying task 'jar' by adding main class to the manifest and packaging all the project dependencies into artifact
+jar {
+    manifest {
+        attributes "Main-Class": "com.example.Main"
+    }
+
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+// modifying test task by specifying the test framework we are about to use in the project. JUnit is the most popular one
+test {
+    useJUnitPlatform()
+}
+
+// registration of the our custom task
+// Will appear in the IDE Gradle nav bar under 'other' group with the name declared here
+// preferable approach to declare
+tasks.register('customTask') {
+    dependsOn('build')
+    doLast {
+        println 'Custom task executed!'
+    }
+}
+
+// one more way to register our custom task. this one depends on the 'build' task (will be executed before our one)
+task customTaskAnotherWayToDeclare(dependsOn: 'build') {
+    doLast {
+        println 'Custom task executed!'
+    }
+}
+
